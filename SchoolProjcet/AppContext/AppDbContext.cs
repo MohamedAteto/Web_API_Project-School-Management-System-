@@ -10,7 +10,7 @@ namespace School.AppContext
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=ProjectDB;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False");
+            optionsBuilder.UseSqlServer("Data Source=DESKTOP-4E7TU9R;Initial Catalog=ProjectDBWebApi;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
