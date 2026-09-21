@@ -26,14 +26,14 @@ namespace School.Models
         public string? PhoneNumber { get; set; }
 
 
-        [Range(0, double.MaxValue)]
-        public decimal Salary { get; set; }
+        [Range(0, int.MaxValue)]
+        public int Salary { get; set; }
 
         [ForeignKey(nameof(Department))]
         public int DepartmentId { get; set; }
        
         public Department Department { get; set; }
-   
+        [JsonIgnore]
         public ICollection<Subject> Subjects { get; set; }
     }
 }

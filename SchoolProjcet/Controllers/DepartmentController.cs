@@ -5,6 +5,8 @@ using SchoolProjcet.DTOs.DepartmentDTOs;
 
 namespace SchoolProjcet.Controllers
 {
+    [Route("api/[controller]")]   
+    [ApiController]               
     public class DepartmentController :ControllerBase
     {
         private readonly AppDbContext _context;
@@ -60,9 +62,7 @@ namespace SchoolProjcet.Controllers
             _context.Departments.Add(DepartmentEntity);
             _context.SaveChanges();
 
-            return CreatedAtAction(nameof(GetDepartments),
-                new { id = DepartmentEntity.Id },
-                DepartmentEntity);
+            return CreatedAtAction(nameof(GetDepartmentById), new { id = DepartmentEntity.Id }, DepartmentEntity);
         }
 
 

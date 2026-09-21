@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace School.Models
 {
@@ -9,6 +10,8 @@ namespace School.Models
         public string Name { get; set; }
 
         public string? Description { get; set; }
+
+        [JsonIgnore]
 
         public ICollection<Teacher>Teachers { get; set; } 
     }

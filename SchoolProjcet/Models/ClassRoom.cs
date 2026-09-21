@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace School.Models
 {
@@ -16,6 +17,7 @@ namespace School.Models
         [Range(1, 100)]
         public int Capacity { get; set; }
 
+        [JsonIgnore]
         public ICollection<Student> Students { get; set; }
     }
 }
