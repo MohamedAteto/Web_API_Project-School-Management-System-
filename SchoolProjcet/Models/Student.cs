@@ -31,6 +31,7 @@ namespace School.Models
        
         public ClassRoom ClassRoom { get; set; }
 
+        [JsonIgnore]
         public ICollection<Enrollment> Enrollments { get; set; }
     }
 }

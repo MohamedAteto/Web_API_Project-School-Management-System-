@@ -1,17 +1,26 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Runtime.CompilerServices;
+using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using School.AppContext;
 using School.Models;
 using SchoolProjcet.DTOs.DepartmentDTOs;
+using SchoolProjcet.Mapping;
 
 namespace SchoolProjcet.Controllers
 {
+    [Route("api/[controller]")]   
+    [ApiController]               
     public class DepartmentController :ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
         public DepartmentController()
         {
             _context = new AppDbContext();
+
+            _mapper = new MapperConfiguration(cfg => cfg.AddProfile<DepartmentProfile>())
+                .CreateMapper();
         }
 
 
@@ -20,12 +29,21 @@ namespace SchoolProjcet.Controllers
         {
             var departments = _context.Departments.ToList();
 
-            var DTOs = departments.Select(d => new
-            {
-                d.Id,
-                d.Name,
-                d.Description
-            });
+            if (departments is null || departments.Count == 0)
+                return BadRequest("The Object is null");
+
+            ///  old Method ////
+
+            //var DTOs = departments.Select(d => new
+            //{
+            //    d.Id,
+            //    d.Name,
+            //    d.Description
+            //});
+
+
+            var DTOs = _mapper.Map<List<DepartmentDTO>>(departments);
+           
 
             return Ok(DTOs);
         }
@@ -39,6 +57,9 @@ namespace SchoolProjcet.Controllers
             {
                 return NotFound($"Department with ID {id} not found.");
             }
+
+            var DTO = _mapper.Map<DepartmentDTO>(department);
+
             return Ok(department);
         }
 
@@ -51,23 +72,26 @@ namespace SchoolProjcet.Controllers
                 return BadRequest("Department data is null.");
             }
 
-            var DepartmentEntity = new Department
-            {
-                Name = department.Name,
-                Description = department.Description
-            };
+            ///  old Method ////
 
-            _context.Departments.Add(DepartmentEntity);
+            //var DepartmentEntity = new Department
+            //{
+            //    Name = department.Name,
+            //    Description = department.Description
+            //};
+
+            var Entity = _mapper.Map<Department>(department);
+
+
+            _context.Departments.Add(Entity);
             _context.SaveChanges();
 
-            return CreatedAtAction(nameof(GetDepartments),
-                new { id = DepartmentEntity.Id },
-                DepartmentEntity);
+            return CreatedAtAction(nameof(GetDepartmentById), new { id = department.Id }, Entity);
         }
 
 
         [HttpPut("{id}")]
-        public IActionResult UpdateDepartment(int id, [FromBody] DepartmentDTO department)
+        public IActionResult UpdateDepartment(int id, [FromBody] UpdateDepartmentDTO department)
         {
             if (department == null)
             {
@@ -78,8 +102,12 @@ namespace SchoolProjcet.Controllers
             {
                 return NotFound($"Department with ID {id} not found.");
             }
-            existingDepartment.Name = department.Name;
-            existingDepartment.Description = department.Description;
+
+            ///  old Method ////
+
+            //existingDepartment.Name = department.Name;
+            //existingDepartment.Description = department.Description;
+            _mapper.Map(department, existingDepartment);
             _context.SaveChanges();
             return NoContent();
         }
