@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Linq;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,9 +26,10 @@ namespace SchoolProjcet.Controllers
         [HttpGet]
         public IActionResult GetAllStudents()
         {
-            var students = _context.Students.Include(op => op.ClassRoom).ToList();
+            var students = _context.Students.Include(op => op.ClassRoom).Where(s => s.ClassRoomId == 2).ToList();
 
-            if (students is null || students.Count == 0)
+
+            if (students is null )
                 return BadRequest("Has NO Data");
 
             var DTO = _mapper.Map<List<StudentDTO>>(students);
@@ -39,6 +41,17 @@ namespace SchoolProjcet.Controllers
         public IActionResult GetStudentById(int id)
         {
             var student = _context.Students.Find(id);
+
+
+            //var student = _context.Students
+            //.Include(s => s.ClassRoom)
+            //.First(s => s.Id == id);
+
+
+            //   var student = _context.Students
+            //.Include(s => s.ClassRoom)
+            //.First(s => s.Id == id);
+
             if (student == null)
             {
                 return NotFound();
@@ -46,7 +59,7 @@ namespace SchoolProjcet.Controllers
 
             var DTO = _mapper.Map<StudentDTO>(student);
 
-            return Ok(DTO);
+            return Ok(student);
         }
 
         [HttpPost]
@@ -102,6 +115,20 @@ namespace SchoolProjcet.Controllers
             _context.Students.Remove(student);
             _context.SaveChanges();
             return NoContent();
+        }
+
+
+
+
+        [HttpGet("ByEmail/{email}")]
+        public IActionResult GetStudentByEmail( [FromBody]string email)
+        {
+            var student = _context.Students.Single(s => s.Email == email);
+            if (student == null)
+                return NotFound();
+
+            var DTO = _mapper.Map<StudentDTO>(student);
+            return Ok(DTO);
         }
     }
 }
