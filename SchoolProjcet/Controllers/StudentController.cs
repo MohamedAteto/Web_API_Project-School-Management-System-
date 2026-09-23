@@ -130,5 +130,45 @@ namespace SchoolProjcet.Controllers
             var DTO = _mapper.Map<StudentDTO>(student);
             return Ok(DTO);
         }
+
+        //[HttpGet("StudentsByClassRoomIDAndOrderedwithGradeInEnrollments")]
+        //public IActionResult GetStudentsByClassRoomIDAndOrderedwithGradeInEnrollments(int classRoomId)
+        //{
+        //    var students = _context.Enrollments
+        //          .Where(c => c.Student.ClassRoomId == classRoomId)
+        //          .OrderByDescending(g => g.Grade)
+        //          .Select(s => new {
+
+        //          });
+
+
+        //    if (students == null || !students.Any())
+        //        return NotFound();
+        //    var DTOs = _mapper.Map<List<StudentDTO>>(students);
+        //    return Ok(students);
+        //}
+
+
+        [HttpGet("countofstudnetsgroubedbyaspecificclassroomid")]
+        public IActionResult GetCountOfStudentsGroupedByClassRoomId()
+        {
+            var count = _context.Students.GroupBy(s => s.ClassRoomId)
+                .Select(g => new {
+                    ClassRoomId = g.Key,
+                    StudentCount = g.Count(),
+                    studentname = g.Select(n => n.FirstName + " " + n.LastName)
+                });
+
+               var count2= _context.Students.GroupBy(s => s.ClassRoomId ).Select(g => new
+                {
+                    ClassRoomId = g.Key,
+                    StudentCount = g.Count(),
+                    studentname = g.Select(n => n.FirstName + " " + n.LastName)
+                });
+            var result= count.Union(count2);
+
+            return Ok(count);
+        }
+
     }
 }

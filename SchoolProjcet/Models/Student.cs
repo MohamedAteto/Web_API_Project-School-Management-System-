@@ -33,5 +33,6 @@ namespace School.Models
 
         [JsonIgnore]
         public ICollection<Enrollment> Enrollments { get; set; }
+
     }
 }
