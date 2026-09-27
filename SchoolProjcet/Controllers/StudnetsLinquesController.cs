@@ -16,9 +16,9 @@ namespace SchoolProjcet.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
-        public StudnetsLinquesController()
+        public StudnetsLinquesController(AppDbContext context)
         {
-            _context = new AppDbContext();
+            _context = context;
             _mapper = new MapperConfiguration(config => config.AddProfile<StudentProfile>())
                 .CreateMapper();
         }
