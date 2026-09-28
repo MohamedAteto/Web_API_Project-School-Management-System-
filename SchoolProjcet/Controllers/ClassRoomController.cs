@@ -5,6 +5,7 @@ using School.AppContext;
 using School.Models;
 using SchoolProjcet.DTOs.ClassRoomDTOs;
 using SchoolProjcet.Mapping;
+using SchoolProjcet.Reposatories.Implmentation;
 
 namespace SchoolProjcet.Controllers
 {
@@ -13,10 +14,12 @@ namespace SchoolProjcet.Controllers
     public class ClassRoomController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IGenaricRepo<ClassRoom> genaricRepo;
         private readonly IMapper _mapper;
-        public ClassRoomController(AppDbContext context)
+        public ClassRoomController(AppDbContext context , IGenaricRepo<ClassRoom> genaricRepo)
         {
             _context = context;
+            this.genaricRepo = genaricRepo;
             _mapper = new MapperConfiguration(config => config.AddProfile<ClassRoomProfile>())
                 .CreateMapper();
         }
@@ -24,7 +27,7 @@ namespace SchoolProjcet.Controllers
         [HttpGet]
         public IActionResult GetClassRooms()
         {
-            var classrooms = _context.ClassRooms.ToList();
+            var classrooms = genaricRepo.GetAll();
             if (classrooms is null || classrooms.Count == 0)
                 return BadRequest("Has No Data");
 
@@ -35,7 +38,7 @@ namespace SchoolProjcet.Controllers
         [HttpGet("{id}")]
         public IActionResult GetClassRoom([FromRoute] int id)
         {
-            var classRoom = _context.ClassRooms.Find(id);
+            var classRoom = genaricRepo.GetById(id);
             if (classRoom == null)
             {
                 return NotFound();
@@ -55,7 +58,7 @@ namespace SchoolProjcet.Controllers
 
             var Entity = _mapper.Map<ClassRoom>(classRoomDTO);
             
-            _context.ClassRooms.Add(Entity);
+            genaricRepo.Add(Entity);
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetClassRoom), new { id = Entity.Id }, classRoomDTO);
         }
@@ -75,6 +78,7 @@ namespace SchoolProjcet.Controllers
             }
 
             _mapper.Map(source: classRoomDTO, destination: classRoom);
+            //genaricRepo.Update(classRoom);
             _context.SaveChanges();
             return NoContent();
         }
@@ -82,12 +86,12 @@ namespace SchoolProjcet.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteClassRoom([FromRoute] int id)
         {
-            var classRoom = _context.ClassRooms.Find(id);
+            var classRoom = genaricRepo.GetById(id);
             if (classRoom == null)
             {
                 return NotFound();
             }
-            _context.ClassRooms.Remove(classRoom);
+            genaricRepo.Delete(id);
             _context.SaveChanges();
             return NoContent();
         }

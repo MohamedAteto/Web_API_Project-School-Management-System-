@@ -5,6 +5,7 @@ using School.AppContext;
 using School.Models;
 using SchoolProjcet.DTOs.DepartmentDTOs;
 using SchoolProjcet.Mapping;
+using SchoolProjcet.Reposatories.Implmentation;
 
 namespace SchoolProjcet.Controllers
 {
@@ -13,12 +14,13 @@ namespace SchoolProjcet.Controllers
     public class DepartmentController :ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IGenaricRepo<Department> genaricRepo;
         private readonly IMapper _mapper;
 
-        public DepartmentController(AppDbContext context)
+        public DepartmentController(AppDbContext context , IGenaricRepo<Department> genaricRepo)
         {
             _context = context;
-
+            this.genaricRepo = genaricRepo;
             _mapper = new MapperConfiguration(cfg => cfg.AddProfile<DepartmentProfile>())
                 .CreateMapper();
         }
@@ -27,19 +29,11 @@ namespace SchoolProjcet.Controllers
         [HttpGet]
         public IActionResult GetDepartments()
         {
-            var departments = _context.Departments.ToList();
+            var departments = genaricRepo.GetAll();
 
             if (departments is null || departments.Count == 0)
                 return BadRequest("The Object is null");
 
-            ///  old Method ////
-
-            //var DTOs = departments.Select(d => new
-            //{
-            //    d.Id,
-            //    d.Name,
-            //    d.Description
-            //});
 
 
             var DTOs = _mapper.Map<List<DepartmentDTO>>(departments);
@@ -52,7 +46,7 @@ namespace SchoolProjcet.Controllers
         [HttpGet("{id}")]
         public IActionResult GetDepartmentById(int id)
         {
-            var department = _context.Departments.Find(id);
+            var department = genaricRepo.GetById(id);
             if (department == null)
             {
                 return NotFound($"Department with ID {id} not found.");
@@ -65,28 +59,20 @@ namespace SchoolProjcet.Controllers
 
 
         [HttpPost]
-        public IActionResult CreateDepartment([FromBody] DepartmentDTO department)
+        public IActionResult CreateDepartment([FromBody] CreateDepartmentDTO department)
         {
             if (department == null)
             {
                 return BadRequest("Department data is null.");
             }
 
-            ///  old Method ////
-
-            //var DepartmentEntity = new Department
-            //{
-            //    Name = department.Name,
-            //    Description = department.Description
-            //};
-
             var Entity = _mapper.Map<Department>(department);
 
 
-            _context.Departments.Add(Entity);
+            genaricRepo.Add(Entity);
             _context.SaveChanges();
 
-            return CreatedAtAction(nameof(GetDepartmentById), new { id = department.Id }, Entity);
+            return CreatedAtAction(nameof(GetDepartmentById), new { id = Entity.Id }, Entity);
         }
 
 
@@ -97,17 +83,15 @@ namespace SchoolProjcet.Controllers
             {
                 return BadRequest("Department data is null.");
             }
-            var existingDepartment = _context.Departments.Find(id);
+            var existingDepartment = genaricRepo.GetById(id);
             if (existingDepartment == null)
             {
                 return NotFound($"Department with ID {id} not found.");
             }
 
-            ///  old Method ////
 
-            //existingDepartment.Name = department.Name;
-            //existingDepartment.Description = department.Description;
             _mapper.Map(department, existingDepartment);
+            genaricRepo.Update(existingDepartment);
             _context.SaveChanges();
             return NoContent();
         }
@@ -120,7 +104,7 @@ namespace SchoolProjcet.Controllers
             {
                 return NotFound($"Department with ID {id} not found.");
             }
-            _context.Departments.Remove(existingDepartment);
+            genaricRepo.Delete(id);
             _context.SaveChanges();
             return NoContent();
         }

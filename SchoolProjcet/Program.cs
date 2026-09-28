@@ -26,7 +26,11 @@ namespace SchoolProjcet
             builder.Services.AddScoped<IStudentRepo, StudentRepo>();
             builder.Services.AddScoped<StudentRepo>();
             builder.Services.AddScoped<IGenaricRepo<Student>, GanaricRepo<Student>>();
-            builder.Services.AddScoped(typeof(IGenaricRepo<>), typeof(GanaricRepo<>));
+            builder.Services.AddScoped(typeof(IGenaricRepo<Department>), typeof(GanaricRepo<Department>));
+            builder.Services.AddScoped(typeof(IGenaricRepo<Subject>), typeof(GanaricRepo<Subject>));
+            builder.Services.AddScoped(typeof(IGenaricRepo<Teacher>), typeof(GanaricRepo<Teacher>));
+            builder.Services.AddScoped(typeof(IGenaricRepo<Enrollment>), typeof(GanaricRepo<Enrollment>));
+            builder.Services.AddScoped(typeof(IGenaricRepo<ClassRoom>), typeof(GanaricRepo<ClassRoom>));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
