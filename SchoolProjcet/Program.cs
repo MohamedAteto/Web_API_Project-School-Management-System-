@@ -1,6 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using School.AppContext;
+using School.Models;
 using SchoolProjcet.Reposatories.Implmentation;
 using SchoolProjcet.Reposatories.Interfaces;
 namespace SchoolProjcet
@@ -24,7 +25,8 @@ namespace SchoolProjcet
 
             builder.Services.AddScoped<IStudentRepo, StudentRepo>();
             builder.Services.AddScoped<StudentRepo>();
-
+            builder.Services.AddScoped<IGenaricRepo<Student>, GanaricRepo<Student>>();
+            builder.Services.AddScoped(typeof(IGenaricRepo<>), typeof(GanaricRepo<>));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

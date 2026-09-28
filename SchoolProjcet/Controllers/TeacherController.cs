@@ -5,6 +5,7 @@ using School.AppContext;
 using School.Models;
 using SchoolProjcet.DTOs.TeacherDTOs;
 using SchoolProjcet.Mapping;
+using SchoolProjcet.Reposatories.Implmentation;
 
 namespace SchoolProjcet.Controllers
 {
@@ -13,22 +14,26 @@ namespace SchoolProjcet.Controllers
     public class TeacherController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IGenaricRepo<Teacher> teacherRepo;
         private readonly IMapper _mapper;
-        public TeacherController(AppDbContext context)
+        public TeacherController(IGenaricRepo<Teacher> teacherRepo,AppDbContext context)
         {
             _context = context; 
+            this.teacherRepo = teacherRepo;
             _mapper = new MapperConfiguration(conf => conf.AddProfile<TeacherProfile>())
                 .CreateMapper();
 
         }
 
-        // GET: api/Teacher
         [HttpGet]
         public IActionResult GetTeachers()
         {
-            var teachers = _context.Teachers
-                .Include(t => t.Department).ToList();
+            //var teachers = _context.Teachers
+            //    .Include(t => t.Department).ToList();
 
+            var teachers = teacherRepo.GetQueryable()
+                .Include(t => t.Department)
+                .ToList();
 
             var DTO = _mapper.Map<List<TeacherDTO>>(teachers);
             
@@ -36,11 +41,14 @@ namespace SchoolProjcet.Controllers
         }
 
 
-        // GET: api/Teacher/5
         [HttpGet("{id}")]
         public IActionResult GetTeacherById(int id)
         {
-            var teacher = _context.Teachers
+            //var teacher = _context.Teachers
+            //    .Include(t => t.Department)
+            //    .FirstOrDefault(t => t.Id == id);
+
+            var teacher = teacherRepo.GetQueryable()
                 .Include(t => t.Department)
                 .FirstOrDefault(t => t.Id == id);
 
@@ -49,17 +57,6 @@ namespace SchoolProjcet.Controllers
                 return NotFound($"Teacher with ID {id} not found.");
             }
 
-            //var dto = new TeacherDTO
-            //{
-            //    FullName = teacher.FirstName + " " + teacher.LastName,
-            //    DepartmentId = teacher.DepartmentId,
-            //    DepartmentName = teacher.Department != null
-            //        ? teacher.Department.Name
-            //        : null,
-            //    Email = teacher.Email,
-            //    PhoneNumber = teacher.PhoneNumber,
-            //    Salary = teacher.Salary
-            //};
 
             var dto = _mapper.Map<TeacherDTO>(teacher);
 
@@ -67,7 +64,6 @@ namespace SchoolProjcet.Controllers
         }
 
 
-        // POST: api/Teacher
         [HttpPost]
         public IActionResult CreateTeacher([FromBody] CreateTeacherDTO teacher)
         {
@@ -88,14 +84,13 @@ namespace SchoolProjcet.Controllers
 
             var Entity = _mapper.Map<Teacher>(teacher);
 
-            _context.Teachers.Add(Entity);
+            teacherRepo.Add(Entity);
             _context.SaveChanges();
 
             return CreatedAtAction(nameof(GetTeacherById), new { id = Entity.Id }, teacher);
         }
 
 
-        // PUT: api/Teacher/5
         [HttpPut("{id}")]
         public IActionResult UpdateTeacher([FromRoute] int id,  [FromBody] UpdateTeacherDTO updatedTeacher)
         {
@@ -104,7 +99,7 @@ namespace SchoolProjcet.Controllers
                 return BadRequest("Teacher data is null.");
             }
 
-            var teacher = _context.Teachers.Find(id);
+            var teacher = teacherRepo.GetById(id);
 
             if (teacher == null)
             {
@@ -119,8 +114,8 @@ namespace SchoolProjcet.Controllers
             //teacher.Salary = updatedTeacher.Salary;
 
             _mapper.Map(destination: teacher, source: updatedTeacher);
-
             _context.SaveChanges();
+
 
             return NoContent();
         }

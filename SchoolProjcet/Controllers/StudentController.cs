@@ -15,33 +15,49 @@ namespace SchoolProjcet.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
-        private readonly StudentRepo _studentrepo;
+        private readonly IGenaricRepo<Student> _studentrepo;
         private readonly IMapper _mapper;
-        public StudentController(StudentRepo context)
+        private readonly AppDbContext _context;
+        public StudentController(IGenaricRepo<Student> context , AppDbContext _context)
         {
             _studentrepo = context;
             _mapper = new MapperConfiguration(config => config.AddProfile<StudentProfile>())
                 .CreateMapper();
+            this._context = _context;
         }
 
         [HttpGet]
         public IActionResult GetAllStudents()
         {
 
-            var students = _studentrepo.GetAllStudents();
+            var students = _studentrepo
+                .GetQueryable()
+                .Include(c => c.ClassRoom).Select(n => new
+                {
+                    n.FirstName,
+                    n.Email,
+                    n.PhoneNumber,
+                    ClassRoomName = n.ClassRoom.Name
+                });
 
             if (students is null )
                 return BadRequest("Has NO Data");
 
-            var DTO = _mapper.Map<List<StudentDTO>>(students);
+            //var DTO = _mapper.Map<List<StudentDTO>>(students);
 
-            return Ok(DTO);
+            return Ok(students);
         }
 
         [HttpGet("{id}")]
         public IActionResult GetStudentById(int id)
         {
-            var student = _studentrepo.GetStudentById(id);
+            //var student = _studentrepo.GetById(id);
+
+            var student = _studentrepo
+                .GetQueryable()
+                .Include(c => c.ClassRoom)
+                .FirstOrDefault(n => n.Id == id);
+             
 
             if (student == null)
             {
@@ -62,7 +78,7 @@ namespace SchoolProjcet.Controllers
 
             var Entity = _mapper.Map<Student>(studentDTO);
 
-            _studentrepo.CreateStudent(Entity);
+            _studentrepo.Add(Entity);
             return CreatedAtAction(nameof(GetStudentById), new { id = Entity.Id }, studentDTO);
         }
 
@@ -73,56 +89,56 @@ namespace SchoolProjcet.Controllers
             if(studentDTO is null)
                 return BadRequest("Student data is null.");
 
-            var student = _studentrepo.GetStudentById(id);
+            var student = _studentrepo.GetById(id);
             if (student == null)
                 return NotFound();
 
             _mapper.Map(source: studentDTO, destination: student);
-            _studentrepo.SaveChanges();
+            _context.SaveChanges();
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public IActionResult DeleteStudent(int id)
         {
-            var student = _studentrepo.GetStudentById(id);
+            var student = _studentrepo.GetById(id);
             if (student == null)
                 return NotFound();
 
 
-            _studentrepo.DeleteStudent(id);
+            _studentrepo.Delete(id);
             return NoContent();
         }
 
 
 
 
-        [HttpGet("ByEmail/{email}")]
-        public IActionResult GetStudentByEmail( [FromBody]string email)
-        {
+        //[HttpGet("ByEmail/{email}")]
+        //public IActionResult GetStudentByEmail( [FromBody]string email)
+        //{
 
-            var student = _studentrepo.GetStudentByEmail(email);
+        //    var student = _context.GetStudentByEmail(email);
 
-            if (student == null)
-                return NotFound();
+        //    if (student == null)
+        //        return NotFound();
 
-            var DTO = _mapper.Map<StudentDTO>(student);
-            return Ok(DTO);
-        }
+        //    var DTO = _mapper.Map<StudentDTO>(student);
+        //    return Ok(DTO);
+        //}
 
 
 
-        [HttpGet("countofstudnetsgroubedbyaspecificclassroomid")]
-        public IActionResult GetCountOfStudentsGroupedByClassRoomId()
-        {
+        //[HttpGet("countofstudnetsgroubedbyaspecificclassroomid")]
+        //public IActionResult GetCountOfStudentsGroupedByClassRoomId()
+        //{
 
-            var count = _studentrepo.GetCountOfStudentsGroupedByClassRoomId();
+        //    var count = _studentrepo.GetCountOfStudentsGroupedByClassRoomId();
 
-            if(count is null)
-                return NotFound();
+        //    if(count is null)
+        //        return NotFound();
 
-            return Ok(count);
-        }
+        //    return Ok(count);
+        //}
 
     }
 }

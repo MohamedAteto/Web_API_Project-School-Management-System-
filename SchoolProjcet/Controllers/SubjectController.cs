@@ -7,6 +7,7 @@ using School.AppContext;
 using School.Models;
 using SchoolProjcet.DTOs.SubjectDTOs;
 using SchoolProjcet.Mapping;
+using SchoolProjcet.Reposatories.Implmentation;
 
 namespace SchoolProjcet.Controllers
 {
@@ -15,12 +16,14 @@ namespace SchoolProjcet.Controllers
     public class SubjectController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IGenaricRepo<Subject> genaricRepo;
         private readonly IMapper _mapper;
 
-        public SubjectController(AppDbContext context)
+        public SubjectController(AppDbContext context , IGenaricRepo<Subject> genaricRepo)
         {
             _context = context;
 
+            this.genaricRepo = genaricRepo;
             _mapper = new MapperConfiguration(config =>config.AddProfile<SubjectProfile>())
                 .CreateMapper();
         }
@@ -28,7 +31,7 @@ namespace SchoolProjcet.Controllers
         [HttpGet]
         public IActionResult GetSubjects()
         {
-            var subjects = _context.Subjects
+            var subjects = genaricRepo.GetQueryable()
                 .Include(s => s.Teacher)
                 .ToList();
 
@@ -45,9 +48,10 @@ namespace SchoolProjcet.Controllers
         [HttpGet("{id}")]
         public IActionResult GetSubject([FromRoute] int id)
         {
-            var subject = _context.Subjects
-                .Include(s => s.Teacher)
-                .FirstOrDefault(s => s.Id == id);
+            var subject = genaricRepo.GetQueryable()
+                 .Include(s => s.Teacher)
+                 .FirstOrDefault(s => s.Id == id);
+
 
             if (subject == null)
             {
@@ -70,8 +74,8 @@ namespace SchoolProjcet.Controllers
 
             var Entity = _mapper.Map<Subject>(subjectDTO);
 
-            _context.Subjects.Add(Entity);
-            _context.SaveChanges();
+            genaricRepo.Add(Entity);
+            
 
             return CreatedAtAction(
                 nameof(GetSubject),
@@ -90,7 +94,7 @@ namespace SchoolProjcet.Controllers
                 return BadRequest(ModelState);
             }
 
-            var subject = _context.Subjects.Find(id);
+            var subject = genaricRepo.GetById(id);
 
             if (subject == null)
             {
@@ -102,7 +106,7 @@ namespace SchoolProjcet.Controllers
                 destination: subject
             );
 
-            _context.SaveChanges();
+            
 
             return NoContent();
         }
@@ -117,8 +121,7 @@ namespace SchoolProjcet.Controllers
                 return NotFound();
             }
 
-            _context.Subjects.Remove(subject);
-            _context.SaveChanges();
+            genaricRepo.Delete(id);
 
             return NoContent();
         }

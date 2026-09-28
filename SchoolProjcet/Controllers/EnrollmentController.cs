@@ -7,6 +7,7 @@ using School.AppContext;
 using School.Models;
 using SchoolProjcet.DTOs.EnrollmentDTOs;
 using SchoolProjcet.Mapping;
+using SchoolProjcet.Reposatories.Implmentation;
 
 namespace SchoolProjcet.Controllers
 {
@@ -15,11 +16,13 @@ namespace SchoolProjcet.Controllers
     public class EnrollmentController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IGenaricRepo<Enrollment> enrollmentRepo;
         private readonly IMapper _mapper;
 
-        public EnrollmentController(AppDbContext context)
+        public EnrollmentController(IGenaricRepo<Enrollment> enrollmentRepo, AppDbContext context)
         {
             _context = context;
+            this.enrollmentRepo = enrollmentRepo;
 
             _mapper = new MapperConfiguration(config =>
                 config.AddProfile<EnrollmentProfile>())
@@ -29,7 +32,12 @@ namespace SchoolProjcet.Controllers
         [HttpGet]
         public IActionResult GetEnrollments()
         {
-            var enrollments = _context.Enrollments
+            //var enrollments = _context.Enrollments
+            //    .Include(e => e.Student)
+            //    .Include(e => e.Subject)
+            //    .ToList();
+
+            var enrollments = enrollmentRepo.GetQueryable()
                 .Include(e => e.Student)
                 .Include(e => e.Subject)
                 .ToList();
@@ -47,14 +55,19 @@ namespace SchoolProjcet.Controllers
         [HttpGet("{id}")]
         public IActionResult GetEnrollment([FromRoute] int id)
         {
-            var enrollment = _context.Enrollments
-                .Include(e => e.Student)
-                .Include(e => e.Subject)
+            //var enrollment = _context.Enrollments
+            //    .Include(e => e.Student)
+            //    .Include(e => e.Subject)
+            //    .FirstOrDefault(e => e.Id == id);
+
+            var enrollment = enrollmentRepo.GetQueryable()
+                //.Include(e => e.Student)
+                //.Include(e => e.Subject)
                 .FirstOrDefault(e => e.Id == id);
 
             if (enrollment == null)
                 return NotFound();
-            
+
 
             var DTO = _mapper.Map<EnrollmentDTO>(enrollment);
 
@@ -62,15 +75,16 @@ namespace SchoolProjcet.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateEnrollment( [FromBody] CreateEnrollmentDTO enrollmentDTO)
+        public IActionResult CreateEnrollment([FromBody] CreateEnrollmentDTO enrollmentDTO)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
+
 
             var Entity = _mapper.Map<Enrollment>(enrollmentDTO);
 
-            _context.Enrollments.Add(Entity);
+            //_context.Enrollments.Add(Entity);
+            enrollmentRepo.Add(Entity);
             _context.SaveChanges();
 
             return CreatedAtAction(
@@ -81,13 +95,13 @@ namespace SchoolProjcet.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateEnrollment( [FromRoute] int id, [FromBody] UpdateEnrollmentDTO enrollmentDTO)
+        public IActionResult UpdateEnrollment([FromRoute] int id, [FromBody] UpdateEnrollmentDTO enrollmentDTO)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
 
-            var enrollment = _context.Enrollments.Find(id);
+
+            var enrollment = enrollmentRepo.GetById(id);
 
             if (enrollment == null)
             {
@@ -107,14 +121,14 @@ namespace SchoolProjcet.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteEnrollment([FromRoute] int id)
         {
-            var enrollment = _context.Enrollments.Find(id);
+            var enrollment = enrollmentRepo.GetById(id);
 
             if (enrollment == null)
             {
                 return NotFound();
             }
 
-            _context.Enrollments.Remove(enrollment);
+            enrollmentRepo.Delete(id);
             _context.SaveChanges();
 
             return NoContent();
