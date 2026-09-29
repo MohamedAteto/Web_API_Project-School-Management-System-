@@ -9,7 +9,7 @@ namespace SchoolProjcet.Reposatories.Implmentation
         private readonly AppDbContext _context;
         private readonly DbSet<T> _dbSet;
 
-        public GanaricRepo(AppDbContext context)
+        public GanaricRepo(AppDbContext context) 
         {
             _context = context;
             _dbSet = _context.Set<T>();

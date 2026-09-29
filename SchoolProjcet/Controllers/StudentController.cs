@@ -15,10 +15,10 @@ namespace SchoolProjcet.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
-        private readonly IGenaricRepo<Student> _studentrepo;
+        private readonly StudentRepo _studentrepo;
         private readonly IMapper _mapper;
         private readonly AppDbContext _context;
-        public StudentController(IGenaricRepo<Student> context , AppDbContext _context)
+        public StudentController(StudentRepo context , AppDbContext _context)
         {
             _studentrepo = context;
             _mapper = new MapperConfiguration(config => config.AddProfile<StudentProfile>())
@@ -30,15 +30,25 @@ namespace SchoolProjcet.Controllers
         public IActionResult GetAllStudents()
         {
 
-            var students = _studentrepo
-                .GetQueryable()
-                .Include(c => c.ClassRoom).Select(n => new
+            //var students = _studentrepo
+            //    .GetQueryable()
+            //    .Include(c => c.ClassRoom).Select(n => new
+            //    {
+            //        n.FirstName,
+            //        n.Email,
+            //        n.PhoneNumber,
+            //        ClassRoomName = n.ClassRoom.Name
+            //    });
+
+            var students = _studentrepo.GetAllStudents()
+                .Select(n => new
                 {
                     n.FirstName,
                     n.Email,
                     n.PhoneNumber,
                     ClassRoomName = n.ClassRoom.Name
-                });
+                }).ToList();
+
 
             if (students is null )
                 return BadRequest("Has NO Data");
